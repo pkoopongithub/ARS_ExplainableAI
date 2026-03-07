@@ -1,11 +1,7 @@
 # ARS_ExplainableAI  
 **Algorithmic Recursive Sequence Analysis for Explainable AI in Qualitative Social Research**
 
-![Python](https://img.shields.io/badge/python-3.8%252B-blue)  
-![License](https://img.shields.io/badge/license-MIT-green)  
-![DOI](https://img.shields.io/badge/doi-10.xxxx%252Fars.2024.001-red)
 
----
 
 ## 📋 Overview (English)
 
@@ -65,4 +61,5 @@ Generative KI-Systeme versprechen Skalierung, entziehen sich jedoch aufgrund ihr
 - **Transparente Modellbildung** – jeder Interpretationsschritt wird explizit dokumentiert  
 - **Formalisierung qualitativer Prozesse** – Überführung von Lesarten in Terminalzeichenketten  
 - **Erklärbare Netzmodelle** – komprimierende Transformation in Petri- und Bayessche Netze  
+
 - **Rekursive Selbstanwendung** – KI als epistemischer Akteur, der eigene Interpretationen reflektiert  
