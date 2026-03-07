@@ -1,0 +1,95 @@
+# INDUZIERTE PCFG MIT INTERPRETATION
+# =================================
+
+## DATENGRUNDLAGE
+8 Transkripte von Verkaufsgesprächen
+
+## TERMINALE (qualitative Kategorien)
+KAA: Kunden-Abschluss
+KAE: Kunden-Erkundigung
+KAV: Kunden-Verabschiedung
+KBA: Kunden-Antwort
+KBBd: Kunden-Bedarf (konkret)
+KBG: Kunden-Gruß
+VAA: Verkäufer-Abschluss
+VAE: Verkäufer-Auskunft
+VAV: Verkäufer-Verabschiedung
+VBA: Verkäufer-Reaktion
+VBBd: Verkäufer-Nachfrage
+VBG: Verkäufer-Gruß
+
+## NONTERMINALE (interpretative Kategorien)
+
+NT_BEDARFSKLAERUNG_KBBd_VBBd
+  Muster: KBBd → VBBd
+  Bedeutung: Kunden-Bedarf (konkret) → Verkäufer-Nachfrage
+  Begründung: Erkanntes Dialogmuster: Kunden-Bedarf (konkret) → Verkäufer-Nachfrage
+
+NT_ZAHLUNGSVORGANG_VAA_KAA
+  Muster: VAA → KAA
+  Bedeutung: Verkäufer-Abschluss → Kunden-Abschluss
+  Begründung: Erkanntes Dialogmuster: Verkäufer-Abschluss → Kunden-Abschluss
+
+NT_VERABSCHIEDUNG_VAV_KAV
+  Muster: VAV → KAV
+  Bedeutung: Verkäufer-Verabschiedung → Kunden-Verabschiedung
+  Begründung: Erkanntes Dialogmuster: Verkäufer-Verabschiedung → Kunden-Verabschiedung
+
+NT_BEDARFSKLAERUNG_2
+  Muster: NT_BEDARFSKLAERUNG_KBBd_VBBd → KBA
+  Begründung: Erkanntes Dialogmuster: NT_BEDARFSKLAERUNG_KBBd_VBBd → KBA
+
+NT_SEQUENZ_KBBd_VBA
+  Muster: KBBd → VBA
+  Bedeutung: Kunden-Bedarf (konkret) → Verkäufer-Reaktion
+  Begründung: Erkanntes Dialogmuster: Kunden-Bedarf (konkret) → Verkäufer-Reaktion
+
+NT_BEGRUESSUNG_KBG_VBG
+  Muster: KBG → VBG
+  Bedeutung: Kunden-Gruß → Verkäufer-Gruß
+  Begründung: Erkanntes Dialogmuster: Kunden-Gruß → Verkäufer-Gruß
+
+NT_SEQUENZ_2
+  Muster: NT_BEDARFSKLAERUNG_2 → VBA
+  Begründung: Erkanntes Dialogmuster: NT_BEDARFSKLAERUNG_2 → VBA
+
+NT_ZAHLUNGSVORGANG_2
+  Muster: NT_BEDARFSKLAERUNG_2 → NT_ZAHLUNGSVORGANG_VAA_KAA
+  Begründung: Erkanntes Dialogmuster: NT_BEDARFSKLAERUNG_2 → NT_ZAHLUNGSVORGANG_VAA_KAA
+
+NT_BEDARFSKLAERUNG_2_1
+  Muster: NT_BEDARFSKLAERUNG_KBBd_VBBd → NT_ZAHLUNGSVORGANG_VAA_KAA
+  Begründung: Erkanntes Dialogmuster: NT_BEDARFSKLAERUNG_KBBd_VBBd → NT_ZAHLUNGSVORGANG_VAA_KAA
+
+NT_ZAHLUNGSVORGANG_3
+  Muster: VBG → KBBd → NT_ZAHLUNGSVORGANG_VAA_KAA
+  Begründung: Erkanntes Dialogmuster: Sequenz mit 3 Schritten
+
+NT_INFORMATIONSAUSTAUSCH_VAE_KAA
+  Muster: VAE → KAA
+  Bedeutung: Verkäufer-Auskunft → Kunden-Abschluss
+  Begründung: Erkanntes Dialogmuster: Verkäufer-Auskunft → Kunden-Abschluss
+
+NT_SEQUENZ_KBBd_VAA
+  Muster: KBBd → VAA
+  Bedeutung: Kunden-Bedarf (konkret) → Verkäufer-Abschluss
+  Begründung: Erkanntes Dialogmuster: Kunden-Bedarf (konkret) → Verkäufer-Abschluss
+
+NT_BEDARFSKLAERUNG_3
+  Muster: KBG → VBBd → NT_SEQUENZ_KBBd_VBA
+  Begründung: Erkanntes Dialogmuster: Sequenz mit 3 Schritten
+
+## PRODUKTIONSREGELN
+NT_BEDARFSKLAERUNG_2 → NT_BEDARFSKLAERUNG_KBBd_VBBd KBA [1.000]
+NT_BEDARFSKLAERUNG_2_1 → NT_BEDARFSKLAERUNG_KBBd_VBBd NT_ZAHLUNGSVORGANG_VAA_KAA [1.000]
+NT_BEDARFSKLAERUNG_3 → KBG VBBd NT_SEQUENZ_KBBd_VBA [1.000]
+NT_BEDARFSKLAERUNG_KBBd_VBBd → KBBd VBBd [1.000]
+NT_BEGRUESSUNG_KBG_VBG → KBG VBG [1.000]
+NT_INFORMATIONSAUSTAUSCH_VAE_KAA → VAE KAA [1.000]
+NT_SEQUENZ_2 → NT_BEDARFSKLAERUNG_2 VBA [1.000]
+NT_SEQUENZ_KBBd_VAA → KBBd VAA [1.000]
+NT_SEQUENZ_KBBd_VBA → KBBd VBA [1.000]
+NT_VERABSCHIEDUNG_VAV_KAV → VAV KAV [1.000]
+NT_ZAHLUNGSVORGANG_2 → NT_BEDARFSKLAERUNG_2 NT_ZAHLUNGSVORGANG_VAA_KAA [1.000]
+NT_ZAHLUNGSVORGANG_3 → VBG KBBd NT_ZAHLUNGSVORGANG_VAA_KAA [1.000]
+NT_ZAHLUNGSVORGANG_VAA_KAA → VAA KAA [1.000]
