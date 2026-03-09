@@ -556,8 +556,3 @@ A: Mit einem vortrainierten Sentence-Transformer-Modell, das Texte in Vektoren u
 | **Viterbi** | Algorithmus zur Bestimmung der wahrscheinlichsten Zustandssequenz |
 | **XAI** | Explainable Artificial Intelligence - erklärbare künstliche Intelligenz |
 
-**E-Mail**: [Ihre E-Mail-Adresse]
-
----
-
-*Stand: März 2026*
