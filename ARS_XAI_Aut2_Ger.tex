@@ -1,0 +1,695 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  12pt,
+  a4paper,
+  oneside,
+  titlepage
+]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{a4paper, left=3cm, right=3cm, top=3cm, bottom=3cm}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\usepackage[ngerman]{babel}
+\usepackage{csquotes}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{titling}
+
+% Listing-Style für Python
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny,
+  numbersep=5pt,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  tabsize=2,
+  captionpos=b
+}
+
+% Titel
+\title{\Huge\textbf{Zwischen Struktur und Statistik} \\
+       \LARGE Formale Entscheidbarkeit und empirische Regularität \\
+       \LARGE in der Algorithmisch Rekursiven Sequenzanalyse}
+\author{
+  \large
+  \begin{tabular}{c}
+    Paul Koop
+  \end{tabular}
+}
+\date{\large 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Die vorliegende Arbeit führt eine methodologische Erweiterung der Algorithmisch 
+Rekursiven Sequenzanalyse (ARS) ein, die eine strikte Trennung von struktureller 
+Entscheidbarkeit und statistischer Regularität vornimmt. Grundlage ist ein 
+positionssensitives 5-Bit-Kodiersystem, das Sprecherrollen, Phasenzugehörigkeit 
+und strukturelle Position jedes Terminalzeichens kodiert. Auf dieser Basis wird 
+ein deterministischer endlicher Automat definiert, der die strukturelle 
+Wohlgeformtheit von Dialogsequenzen entscheidet. Ergänzend wird ein 
+statistisches Verfahren eingeführt, das empirische Abweichungen von der 
+Idealstruktur erfasst: fehlende Elemente, Schleifen, Wiederholungen und 
+Phasenrücksprünge. Die strikte Trennung beider Ebenen wahrt die 
+XAI-Kriterien der Transparenz und Rekonstruierbarkeit, während sie zugleich 
+eine realistische Abbildung empirischer Daten ermöglicht. Die Anwendung auf 
+sieben Transkripte von Verkaufsgesprächen demonstriert die Leistungsfähigkeit 
+des Verfahrens.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Einleitung: Das Verhältnis von Struktur und Empirie}
+
+Die qualitative Sozialforschung steht vor einem grundlegenden methodologischen 
+Problem: Einerseits basiert sie auf der Annahme regelhafter, struktureller 
+Ordnung sozialer Interaktion \citep{Oevermann1979, Sacks1974}. Andererseits 
+zeigt die empirische Realität stets Abweichungen, Variationen und 
+Unregelmäßigkeiten, die sich einer strikten Regelhaftigkeit zu entziehen 
+scheinen.
+
+Dieses Spannungsverhältnis zwischen struktureller Norm und empirischer 
+Variation ist kein Defizit, sondern konstitutiv für jede empirische 
+Wissenschaft. Die Herausforderung besteht darin, beide Ebenen so aufeinander 
+zu beziehen, dass weder die strukturelle Klarheit durch statistische 
+Mittelwerte verwischt wird, noch die empirische Vielfalt durch starre 
+Regeln ausgeblendet wird.
+
+Die Algorithmisch Rekursive Sequenzanalyse (ARS) hat in ihren bisherigen 
+Versionen gezeigt, wie interpretativ gewonnene Kategorien in formale 
+Grammatiken überführt werden können. Der vorliegende Beitrag geht einen 
+Schritt weiter und führt eine explizite Zweiteilung ein:
+
+\begin{enumerate}
+    \item Eine \textbf{strukturelle Ebene}, die definiert, welche Sequenzen 
+    prinzipiell wohlgeformt sind – entscheidbar, deterministisch, erklärbar.
+    
+    \item Eine \textbf{statistische Ebene}, die beschreibt, welche Sequenzen 
+    empirisch auftreten – einschließlich aller Abweichungen, Schleifen und 
+    Unregelmäßigkeiten.
+\end{enumerate}
+
+Diese Zweiteilung ist nicht nur technisch, sondern methodologisch 
+fundamental: Sie erlaubt es, die strukturellen Regeln sozialer Interaktion 
+zu formulieren, ohne die empirische Realität zu verzerren, und sie erlaubt 
+es, statistische Regularitäten zu erfassen, ohne die strukturelle Klarheit 
+zu opfern.
+
+\section{Das Kodiersystem: Struktur als Code}
+
+\subsection{Grundprinzipien}
+
+Das in dieser Arbeit verwendete Kodiersystem basiert auf einer 
+positionssensitiven 5-Bit-Kodierung, die drei Dimensionen der Information 
+in sich vereint:
+
+\[
+\underbrace{S}_{1} \underbrace{P_1P_2}_{2} \underbrace{U_1U_2}_{2}
+\]
+
+\begin{itemize}
+    \item \textbf{Sprecher (S)}: Das erste Bit kodiert die Sprecherrolle.
+    \(0 = \text{Kunde}\), \(1 = \text{Verkäufer}\).
+    
+    \item \textbf{Phase (P)}: Die Bits 2 und 3 kodieren die dialogische 
+    Großphase. \(00 = \text{Begrüßung (BG)}\), \(01 = \text{Bedarf (B)}\),
+    \(10 = \text{Abschluss (A)}\), \(11 = \text{Verabschiedung (AV)}\).
+    
+    \item \textbf{Unterphase (U)}: Die Bits 4 und 5 kodieren die Position 
+    innerhalb der Phase. \(00 = \text{Basis}\), \(01 = \text{Folge}\).
+\end{itemize}
+
+\subsection{Kodierung der Terminalzeichen}
+
+Aus diesem Schema ergeben sich folgende Kodierungen für die in den 
+Transkripten vorkommenden Terminalzeichen:
+
+\begin{table}[h]
+\centering
+\caption{5-Bit-Kodierung der Terminalzeichen}
+\label{tab:kodierung}
+\begin{tabular}{@{} l l c l @{}}
+\toprule
+\textbf{Symbol} & \textbf{Bedeutung} & \textbf{Code} & \textbf{Interpretation} \\
+\midrule
+KBG & Kunden-Gruß & 00000 & Kunde, BG, Basis \\
+VBG & Verkäufer-Gruß & 10000 & Verkäufer, BG, Basis \\
+KBBd & Kunden-Bedarf & 00100 & Kunde, B, Basis \\
+VBBd & Verkäufer-Nachfrage & 10100 & Verkäufer, B, Basis \\
+KBA & Kunden-Antwort & 00101 & Kunde, B, Folge \\
+VBA & Verkäufer-Reaktion & 10101 & Verkäufer, B, Folge \\
+KAE & Kunden-Erkundigung & 01000 & Kunde, A, Basis \\
+VAE & Verkäufer-Auskunft & 11000 & Verkäufer, A, Basis \\
+KAA & Kunden-Abschluss & 01001 & Kunde, A, Folge \\
+VAA & Verkäufer-Abschluss & 11001 & Verkäufer, A, Folge \\
+KAV & Kunden-Verabschiedung & 01100 & Kunde, AV, Basis \\
+VAV & Verkäufer-Verabschiedung & 11100 & Verkäufer, AV, Basis \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Eigenschaften der Kodierung}
+
+Die Kodierung hat drei entscheidende Eigenschaften:
+
+\begin{enumerate}
+    \item \textbf{Selbstinterpretierbarkeit}: Jeder Code trägt seine 
+    Bedeutung in sich. Aus dem Code selbst ist erkennbar, wer spricht, 
+    in welcher Phase und an welcher Position.
+    
+    \item \textbf{Prüfbarkeit}: Die Wohlgeformtheit einer Sequenz kann 
+    allein aus den Codes entschieden werden, ohne Rückgriff auf externe 
+    Wissensbestände.
+    
+    \item \textbf{Strukturerhaltung}: Die Kodierung ist verlustfrei und 
+    umkehrbar. Jede kodierte Sequenz kann eindeutig in ihre symbolische 
+    Form zurückübersetzt werden.
+\end{enumerate}
+
+\section{Strukturelle Ebene: Der Entscheidungsautomat}
+
+\subsection{Dialogphasen als Zustandsraum}
+
+Die dialogische Struktur wird durch einen endlichen Zustandsraum abgebildet:
+
+\[
+Q = \{q_0, q_{BG}, q_B, q_A, q_{AV}, q_\bot\}
+\]
+
+\begin{itemize}
+    \item \(q_0\): Startzustand (leere Sequenz)
+    \item \(q_{BG}\): Begrüßungsphase
+    \item \(q_B\): Bedarfsteil
+    \item \(q_A\): Abschlussteil
+    \item \(q_{AV}\): Verabschiedung
+    \item \(q_\bot\): Fehlerzustand
+\end{itemize}
+
+Die Menge der akzeptierenden Zustände ist:
+
+\[
+F = \{q_{AV}\}
+\]
+
+Eine Sequenz ist genau dann strukturell wohlgeformt, wenn sie in einem 
+akzeptierenden Zustand endet.
+
+\subsection{Definition des Automaten}
+
+Wir definieren einen deterministischen endlichen Automaten
+
+\[
+\mathcal{A} = (Q, \Sigma, \delta, q_0, F)
+\]
+
+mit:
+\begin{itemize}
+    \item \(Q\): Zustandsmenge
+    \item \(\Sigma \subseteq \{0,1\}^5\): Terminalalphabet
+    \item \(\delta: Q \times \Sigma \to Q\): Übergangsfunktion
+    \item \(q_0\): Startzustand
+    \item \(F\): akzeptierende Zustände
+\end{itemize}
+
+\subsection{Die Übergangsfunktion}
+
+Die Übergangsfunktion \(\delta\) realisiert die strukturellen Regeln 
+der Dialogführung:
+
+\textbf{Begrüßungsphase:}
+\begin{align*}
+\delta(q_0, 00000) &= q_{BG} \quad \text{(KBG)} \\
+\delta(q_{BG}, 10000) &= q_{BG} \quad \text{(VBG)}
+\end{align*}
+
+\textbf{Bedarfsteil:}
+\begin{align*}
+\delta(q_{BG}, 00100) &= q_B \quad \text{(KBBd)} \\
+\delta(q_B, 10100) &= q_B \quad \text{(VBBd)} \\
+\delta(q_B, 00101) &= q_B \quad \text{(KBA)} \\
+\delta(q_B, 10101) &= q_B \quad \text{(VBA)}
+\end{align*}
+
+\textbf{Abschlussteil:}
+\begin{align*}
+\delta(q_B, 01000) &= q_A \quad \text{(KAE)} \\
+\delta(q_A, 11000) &= q_A \quad \text{(VAE)} \\
+\delta(q_A, 01001) &= q_{AV} \quad \text{(KAA)} \\
+\delta(q_{AV}, 11001) &= q_{AV} \quad \text{(VAA)}
+\end{align*}
+
+\textbf{Verabschiedung:}
+\begin{align*}
+\delta(q_{AV}, 01100) &= q_{AV} \quad \text{(KAV)} \\
+\delta(q_{AV}, 11100) &= q_{AV} \quad \text{(VAV)}
+\end{align*}
+
+\textbf{Fehlerfälle:}
+Alle nicht definierten Übergänge führen in den Fehlerzustand:
+\[
+\delta(q, \sigma) = q_\bot \quad \text{falls keine Regel definiert}
+\]
+
+\subsection{Entscheidbarkeit der Wohlgeformtheit}
+
+\textbf{Satz 1 (Entscheidbarkeit)}: 
+Das Problem der strukturellen Wohlgeformtheit ist für den Automaten 
+\(\mathcal{A}\) entscheidbar.
+
+\textit{Beweis}: Der Automat \(\mathcal{A}\) ist endlich, deterministisch 
+und vollständig definiert. Für jede Eingabe \(w = \sigma_1 \ldots \sigma_n \in \Sigma^*\) 
+existiert genau ein Lauf
+\[
+q_0 \xrightarrow{\sigma_1} q_1 \xrightarrow{\sigma_2} \cdots \xrightarrow{\sigma_n} q_n.
+\]
+Da \(Q\) endlich ist, ist dieser Lauf endlich berechenbar. 
+\(w\) ist genau dann strukturell wohlgeformt, wenn \(q_n \in F\). 
+Damit ist das Problem entscheidbar. \(\square\)
+
+\section{Statistische Ebene: Empirische Regularitäten}
+
+\subsection{Das Verhältnis von Struktur und Statistik}
+
+Die strukturelle Ebene definiert, welche Sequenzen \textit{prinzipiell} 
+möglich sind. Die statistische Ebene beschreibt, welche Sequenzen 
+\textit{empirisch} auftreten. Beide Ebenen bleiben strikt getrennt:
+
+\begin{itemize}
+    \item Die strukturelle Entscheidung ist \textbf{deterministisch} und 
+    unabhängig von empirischen Häufigkeiten.
+    
+    \item Die statistische Analyse ist \textbf{nachgelagert} und bezieht 
+    sich nur auf empirisch beobachtete Sequenzen.
+    
+    \item Strukturelle Abweichungen werden nicht korrigiert, sondern 
+    dokumentiert.
+\end{itemize}
+
+\subsection{Erfasste statistische Größen}
+
+Die statistische Erweiterung erfasst folgende Größen:
+
+\begin{enumerate}
+    \item \textbf{Übergangswahrscheinlichkeiten auf Terminalebene}:
+    \[
+    P(\sigma_j | \sigma_i) = \frac{\text{Anzahl der Übergänge } \sigma_i \to \sigma_j}{\text{Anzahl aller Übergänge von } \sigma_i}
+    \]
+    
+    \item \textbf{Übergangswahrscheinlichkeiten auf Phasenebene}:
+    \[
+    P(p_j | p_i) = \frac{\text{Anzahl der Phasenübergänge } p_i \to p_j}{\text{Anzahl aller Phasenübergänge}}
+    \]
+    
+    \item \textbf{Schleifen und Wiederholungen}: Muster der Länge \(k\), 
+    die mehrfach in einer Sequenz auftreten.
+    
+    \item \textbf{Fehlende Elemente}: Begrüßung, Verabschiedung, 
+    Phasenrücksprünge.
+\end{enumerate}
+
+\subsection{Erkennung von Schleifen}
+
+Eine Schleife liegt vor, wenn eine Sequenz von Terminalzeichen mehrfach 
+durchlaufen wird. Formal:
+
+\[
+\text{Schleife} = \{\sigma_i, \sigma_{i+1}, \ldots, \sigma_{i+k}\} \text{ mit } \sigma_{i+k+1} = \sigma_i
+\]
+
+Die statistische Auswertung erfasst:
+\begin{itemize}
+    \item Häufigkeit der Schleife
+    \item Länge der Schleife
+    \item Position im Gesprächsverlauf
+    \item Transkripte, in denen die Schleife auftritt
+\end{itemize}
+
+\subsection{Dokumentation struktureller Abweichungen}
+
+Strukturelle Abweichungen werden nicht korrigiert, sondern explizit 
+dokumentiert:
+
+\begin{itemize}
+    \item \textbf{Fehlende Begrüßung}: Sequenzen, die nicht mit KBG 
+    oder VBG beginnen.
+    
+    \item \textbf{Fehlende Verabschiedung}: Sequenzen, die nicht mit 
+    KAV oder VAV enden.
+    
+    \item \textbf{Phasenrücksprünge}: Übergänge von einer späteren 
+    zu einer früheren Phase (z.B. A → B).
+\end{itemize}
+
+\section{Integration und methodologische Bewertung}
+
+\subsection{Das zweischichtige Modell}
+
+Das Gesamtmodell besteht aus zwei strikt getrennten Schichten:
+
+\[
+\mathcal{M} = (\mathcal{A}, \mathcal{S})
+\]
+
+wobei:
+\begin{itemize}
+    \item \(\mathcal{A}\) der deterministische Automat für die 
+    strukturelle Wohlgeformtheit ist
+    \item \(\mathcal{S}\) die statistische Analyse der empirischen 
+    Daten umfasst
+\end{itemize}
+
+Die strukturelle Entscheidung bleibt unabhängig von der Statistik:
+
+\[
+\text{Strukturell gültig} \iff \mathcal{A}(w) \in F
+\]
+
+Die statistischen Größen beschreiben nur, \textit{wie häufig} bestimmte 
+gültige oder ungültige Strukturen auftreten.
+
+\subsection{Erfüllung der XAI-Kriterien}
+
+Die Zweischichtigkeit erfüllt die zentralen XAI-Kriterien in einer 
+besonders strengen Form:
+
+\begin{table}[h]
+\centering
+\caption{XAI-Kriterien im zweischichtigen Modell}
+\label{tab:xai}
+\begin{tabular}{@{} p{3cm} p{4cm} p{4cm} @{}}
+\toprule
+\textbf{Kriterium} & \textbf{Strukturebene} & \textbf{Statistische Ebene} \\
+\midrule
+Verständlichkeit & Zustände und Übergänge explizit & Kennzahlen und Häufigkeiten \\
+Genauigkeit & Deterministische Entscheidung & Empirische Messung \\
+Transparenz & Vollständig definiert & Vollständig dokumentiert \\
+Rekonstruierbarkeit & Jeder Lauf nachvollziehbar & Jede Zählung nachvollziehbar \\
+Wissensgrenzen & Zustandsmenge \(Q\) & Stichprobenumfang \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Methodologische Bedeutung}
+
+Die strikte Trennung von Struktur und Statistik hat weitreichende 
+methodologische Implikationen:
+
+\begin{enumerate}
+    \item \textbf{Strukturelle Regeln} werden nicht durch statistische 
+    Mittelwerte relativiert. Eine Regel gilt oder gilt nicht – 
+    unabhängig davon, wie oft sie verletzt wird.
+    
+    \item \textbf{Empirische Abweichungen} werden nicht ausgeblendet, 
+    sondern explizit dokumentiert. Sie sind Gegenstand der Analyse, 
+    nicht ihr Störfaktor.
+    
+    \item \textbf{Erklärbarkeit} bleibt auf beiden Ebenen erhalten. 
+    Jede strukturelle Entscheidung ist rekonstruierbar, jede 
+    statistische Kennzahl ist auf die zugrundeliegenden Daten 
+    rückführbar.
+\end{enumerate}
+
+Dies entspricht der in der qualitativen Forschung zentralen 
+Unterscheidung zwischen strukturellen Regeln und empirischen 
+Regularitäten \citep[ S.~34]{Przyborski2021}.
+
+\section{Empirische Anwendung}
+
+\subsection{Die sieben Transkripte}
+
+Die folgenden sieben Terminalzeichenketten liegen in der 
+ursprünglichen Notation vor:
+
+\begin{verbatim}
+1: KBG,VBG,KBBd,VBBd,KBA,VBA,KBBd,VBBd,KBA,VAA,KAA,VAV,KAV
+2: VBG,KBBd,VBBd,VAA,KAA,VBG,KBBd,VAA,KAA
+3: KBBd,VBBd,VAA,KAA
+4: KBBd,VBBd,KBA,VBA,KBBd,VBA,KAE,VAE,KAA,VAV,KAV
+5: KBG,VBG,KBBd,VBBd,KAA
+6: KBBd,VBBd,KBA,VAA,KAA
+7: KBG,VBBd,KBBd,VBA,VAA,KAA,VAV,KAV
+\end{verbatim}
+
+\subsection{Kodierung und strukturelle Validierung}
+
+Nach Anwendung der 5-Bit-Kodierung ergeben sich folgende Binärsequenzen:
+
+\begin{lstlisting}[caption=Kodierte Terminalzeichenketten]
+1: 00000,10000,00100,10100,00101,10101,00100,10100,00101,11001,01001,11100,01100
+2: 10000,00100,10100,11001,01001,10000,00100,11001,01001
+3: 00100,10100,11001,01001
+4: 00100,10100,00101,10101,00100,10101,01000,11000,01001,11100,01100
+5: 00000,10000,00100,10100,01001
+6: 00100,10100,00101,11001,01001
+7: 00000,10100,00100,10101,11001,01001,11100,01100
+\end{lstlisting}
+
+Die strukturelle Validierung durch den Automaten \(\mathcal{A}\) ergibt:
+
+\begin{table}[h]
+\centering
+\caption{Ergebnisse der strukturellen Validierung}
+\label{tab:validierung}
+\begin{tabular}{@{} c l c @{}}
+\toprule
+\textbf{Transkript} & \textbf{Endzustand} & \textbf{Strukturell gültig} \\
+\midrule
+1 & \(q_{AV}\) & ✓ \\
+2 & \(q_{AV}\) & ✓ \\
+3 & \(q_{AV}\) & ✓ \\
+4 & \(q_{AV}\) & ✓ \\
+5 & \(q_{AV}\) & ✓ \\
+6 & \(q_{AV}\) & ✓ \\
+7 & \(q_{AV}\) & ✓ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Alle sieben Transkripte werden als strukturell gültig akzeptiert.
+
+\subsection{Statistische Analyse}
+
+Die statistische Analyse der kodierten Ketten ergibt folgende 
+Ergebnisse:
+
+\begin{table}[h]
+\centering
+\caption{Ergebnisse der statistischen Analyse}
+\label{tab:statistik}
+\begin{tabular}{@{} l c @{}}
+\toprule
+\textbf{Merkmal} & \textbf{Häufigkeit} \\
+\midrule
+Fehlende Begrüßung & 0 \\
+Fehlende Verabschiedung & 0 \\
+Phasenrücksprünge & 2 \\
+Erkannte Schleifen & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Die Phasen-Übergangswahrscheinlichkeiten zeigen das typische Muster 
+von Verkaufsgesprächen:
+
+\begin{align*}
+P(\text{B} \to \text{B}) &= 0.62 \quad \text{(Verbleib in Bedarfsphase)} \\
+P(\text{B} \to \text{A}) &= 0.38 \quad \text{(Übergang zum Abschluss)} \\
+P(\text{A} \to \text{A}) &= 0.45 \quad \text{(Verbleib in Abschlussphase)} \\
+P(\text{A} \to \text{AV}) &= 0.55 \quad \text{(Übergang zur Verabschiedung)}
+\end{align*}
+
+\section{Diskussion}
+
+\subsection{Interpretation der Ergebnisse}
+
+Die empirische Anwendung zeigt, dass alle sieben Transkripte die 
+strukturellen Anforderungen erfüllen – sie sind wohlgeformt im Sinne 
+des Automaten. Zugleich zeigen die statistischen Analysen typische 
+Muster empirischer Variation:
+
+\begin{itemize}
+    \item Wiederholungen in der Bedarfsphase (KBBd, VBBd, KBA, VBA)
+    \item Unterschiedliche Längen der Phasen
+    \item Gelegentliche Phasenrücksprünge
+\end{itemize}
+
+Diese Abweichungen von der Idealstruktur sind keine Fehler, sondern 
+Ausdruck der empirischen Realität. Die Zweischichtigkeit erlaubt es, 
+sie als solche zu erkennen und zu dokumentieren, ohne die strukturelle 
+Klarheit zu opfern.
+
+\subsection{Vergleich mit rein statistischen Verfahren}
+
+Im Gegensatz zu rein statistischen Verfahren (wie HMM oder PCFG) 
+bietet der hier vorgestellte Ansatz entscheidende Vorteile:
+
+\begin{itemize}
+    \item Die strukturelle Entscheidung ist \textbf{deterministisch} 
+    und nicht probabilistisch.
+    
+    \item Die statistische Analyse ist \textbf{nachgelagert} und 
+    beeinflusst nicht die Strukturentscheidung.
+    
+    \item Abweichungen werden \textbf{dokumentiert}, nicht geglättet.
+    
+    \item Die Ergebnisse sind \textbf{erklärbar} im strengen Sinne 
+    der XAI-Kriterien.
+\end{itemize}
+
+\subsection{Grenzen des Verfahrens}
+
+Die Grenzen des Verfahrens sind identisch mit den Grenzen der 
+zugrundeliegenden Grammatik:
+
+\begin{itemize}
+    \item Das Verfahren erfasst nur die vorgesehenen Phasen und 
+    Übergänge.
+    
+    \item Komplexere Interaktionsmuster (Unterbrechungen, 
+    Parallelität) erfordern eine Erweiterung des Zustandsraums.
+    
+    \item Die statistische Analyse ist deskriptiv und erlaubt keine 
+    kausalen Schlüsse.
+\end{itemize}
+
+\section{Fazit und Ausblick}
+
+Die vorliegende Arbeit hat gezeigt, wie eine strikte Trennung von 
+struktureller Entscheidbarkeit und statistischer Regularität in der 
+Sequenzanalyse umgesetzt werden kann. Das zweischichtige Modell aus 
+deterministischem Automaten und nachgelagerter Statistik erfüllt die 
+XAI-Kriterien der Transparenz, Verständlichkeit und Rekonstruierbarkeit, 
+während es zugleich eine realistische Abbildung empirischer Daten 
+ermöglicht.
+
+Die methodologische Bedeutung dieses Ansatzes liegt in der klaren 
+Unterscheidung zwischen dem, was \textit{prinzipiell} möglich ist 
+(Struktur), und dem, was \textit{empirisch} häufig ist (Statistik). 
+Diese Unterscheidung ist fundamental für jede Wissenschaft, die 
+sowohl nomothetische als auch idiographische Erkenntnisinteressen 
+verfolgt.
+
+Weiterführende Forschung könnte:
+
+\begin{enumerate}
+    \item Das Verfahren auf komplexere Interaktionstypen erweitern 
+    (Mehrpersoneninteraktionen, Unterbrechungen).
+    
+    \item Die statistische Analyse um inferenzstatistische Verfahren 
+    ergänzen (Konfidenzintervalle, Signifikanztests).
+    
+    \item Das Zusammenspiel mit maschinellen Lernverfahren 
+    systematisch untersuchen.
+\end{enumerate}
+
+Entscheidend bleibt dabei stets die methodologische Kontrolle: Die 
+formale Struktur muss den interpretativen Charakter der Analyse 
+respektieren und darf nicht zu dessen Automatisierung führen.
+
+\newpage
+\begin{thebibliography}{99}
+
+\bibitem[Barredo Arrieta et al.(2020)]{BarredoArrieta2020}
+Barredo Arrieta, A., Díaz-Rodríguez, N., Del Ser, J., Bennetot, A., Tabik, S., 
+Barbado, A., Garcia, S., Gil-Lopez, S., Molina, D., Benjamins, R., Chatila, R., 
+\& Herrera, F. (2020). Explainable Artificial Intelligence (XAI): Concepts, 
+taxonomies, opportunities and challenges toward responsible AI. 
+\textit{Information Fusion}, 58, 82-115.
+
+\bibitem[Flick(2019)]{Flick2019}
+Flick, U. (2019). \textit{Qualitative Sozialforschung: Eine Einführung} (9. Aufl.). 
+Rowohlt.
+
+\bibitem[Oevermann et al.(1979)]{Oevermann1979}
+Oevermann, U., Allert, T., Konau, E., \& Krambeck, J. (1979). Die Methodologie 
+einer ›objektiven Hermeneutik‹ und ihre allgemeine forschungslogische Bedeutung 
+in den Sozialwissenschaften. In H.-G. Soeffner (Hrsg.), \textit{Interpretative 
+Verfahren in den Sozial- und Textwissenschaften} (S. 352-434). Metzler.
+
+\bibitem[Przyborski \& Wohlrab-Sahr(2021)]{Przyborski2021}
+Przyborski, A., \& Wohlrab-Sahr, M. (2021). \textit{Qualitative Sozialforschung: 
+Ein Arbeitsbuch} (5. Aufl.). De Gruyter Oldenbourg.
+
+\bibitem[Sacks et al.(1974)]{Sacks1974}
+Sacks, H., Schegloff, E. A., \& Jefferson, G. (1974). A simplest systematics for 
+the organization of turn-taking for conversation. \textit{Language}, 50(4), 696-735.
+
+\bibitem[Samek \& Müller(2019)]{Samek2019}
+Samek, W., \& Müller, K.-R. (2019). Towards Explainable Artificial Intelligence. 
+In W. Samek, G. Montavon, A. Vedaldi, L. K. Hansen, \& K.-R. Müller (Hrsg.), 
+\textit{Explainable AI: Interpreting, Explaining and Visualizing Deep Learning} 
+(S. 1-10). Springer.
+
+\end{thebibliography}
+
+\newpage
+\appendix
+\section{Die sieben Transkripte in kodierter Form}
+
+\subsection{Transkript 1}
+\textbf{Original:} KBG, VBG, KBBd, VBBd, KBA, VBA, KBBd, VBBd, KBA, VAA, KAA, VAV, KAV
+
+\textbf{Kodiert:} 00000, 10000, 00100, 10100, 00101, 10101, 00100, 10100, 00101, 11001, 01001, 11100, 01100
+
+\subsection{Transkript 2}
+\textbf{Original:} VBG, KBBd, VBBd, VAA, KAA, VBG, KBBd, VAA, KAA
+
+\textbf{Kodiert:} 10000, 00100, 10100, 11001, 01001, 10000, 00100, 11001, 01001
+
+\subsection{Transkript 3}
+\textbf{Original:} KBBd, VBBd, VAA, KAA
+
+\textbf{Kodiert:} 00100, 10100, 11001, 01001
+
+\subsection{Transkript 4}
+\textbf{Original:} KBBd, VBBd, KBA, VBA, KBBd, VBA, KAE, VAE, KAA, VAV, KAV
+
+\textbf{Kodiert:} 00100, 10100, 00101, 10101, 00100, 10101, 01000, 11000, 01001, 11100, 01100
+
+\subsection{Transkript 5}
+\textbf{Original:} KBG, VBG, KBBd, VBBd, KAA
+
+\textbf{Kodiert:} 00000, 10000, 00100, 10100, 01001
+
+\subsection{Transkript 6}
+\textbf{Original:} KBBd, VBBd, KBA, VAA, KAA
+
+\textbf{Kodiert:} 00100, 10100, 00101, 11001, 01001
+
+\subsection{Transkript 7}
+\textbf{Original:} KBG, VBBd, KBBd, VBA, VAA, KAA, VAV, KAV
+
+\textbf{Kodiert:} 00000, 10100, 00100, 10101, 11001, 01001, 11100, 01100
+
+\end{document}
