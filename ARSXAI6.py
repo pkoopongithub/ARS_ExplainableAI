@@ -323,11 +323,8 @@ class DialogueAutomaton:
     def transition(self, code):
         """
         Führt einen Übergang basierend auf dem 5-Bit-Code durch.
-        Gibt (neuer_zustand, akzeptiert, erklärung) zurück.
-        
-        Wichtig: Ein Fehler tritt NUR auf bei:
-        - Unbekanntem Code (nicht im Alphabet)
-        - Struktureller Regelverletzung (falsche Phase, falscher Sprecher)
+        Korrigierte Version: Erlaubt Übergang von Bedarf zu Abschluss über VAA (11001)
+        und bleibt dann in der Abschlussphase für KAA (01001)
         """
         state = self.current_state
         
@@ -347,7 +344,7 @@ class DialogueAutomaton:
         phase_map = {'00': 'BG', '01': 'B', '10': 'A', '11': 'AV'}
         phase = phase_map.get(phase_bits, 'UNBEKANNT')
         
-        # 2. Strukturelle Übergangsregeln
+        # 2. Strukturelle Übergangsregeln (KORRIGIERT)
         if state == self.Q0:
             if code == '00000':  # KBG (nur Kunde kann Gespräch eröffnen)
                 self.current_state = self.Q_BG
@@ -371,18 +368,24 @@ class DialogueAutomaton:
             if code in ['00100', '10100', '00101', '10101']:  # Alle Bedarfssymbole
                 self.current_state = self.Q_B
                 explanation = f"Bedarf fortgesetzt: {speaker} in Phase {phase} (strukturell korrekt)"
-            elif code == '01000':  # KAE (Übergang zum Abschluss)
+            elif code == '01000':  # KAE (Übergang zum Abschluss über Beratung)
                 self.current_state = self.Q_A
+                explanation = f"Bedarf → Abschluss (mit Beratung): {speaker} leitet Abschluss ein (strukturell korrekt)"
+            elif code == '11001':  # VAA (Übergang zum Abschluss)
+                self.current_state = self.Q_A  # Gehe in Abschlussphase, nicht direkt in Verabschiedung!
                 explanation = f"Bedarf → Abschluss: {speaker} leitet Abschluss ein (strukturell korrekt)"
             else:
                 self.current_state = self.Q_ERR
                 explanation = f"FEHLER: In Bedarfsphase unerwartetes Symbol {code}"
         
         elif state == self.Q_A:
-            if code in ['01000', '11000']:  # KAE, VAE (Abschluss fortsetzen)
+            if code in ['01000', '11000']:  # KAE, VAE (Beratung fortsetzen)
+                self.current_state = self.Q_A
+                explanation = f"Abschluss/Beratung fortgesetzt: {speaker} in Phase {phase} (strukturell korrekt)"
+            elif code == '11001':  # VAA (Abschluss durch Verkäufer)
                 self.current_state = self.Q_A
                 explanation = f"Abschluss fortgesetzt: {speaker} in Phase {phase} (strukturell korrekt)"
-            elif code == '01001':  # KAA (Abschluss beenden)
+            elif code == '01001':  # KAA (Abschluss durch Kunden)
                 self.current_state = self.Q_AV
                 explanation = f"Abschluss → Verabschiedung: {speaker} schließt ab (strukturell korrekt)"
             else:
@@ -390,7 +393,7 @@ class DialogueAutomaton:
                 explanation = f"FEHLER: In Abschlussphase unerwartetes Symbol {code}"
         
         elif state == self.Q_AV:
-            if code in ['01100', '11100', '11001']:  # KAV, VAV, VAA (Verabschiedung)
+            if code in ['01100', '11100']:  # KAV, VAV (Verabschiedung)
                 self.current_state = self.Q_AV
                 explanation = f"Verabschiedung: {speaker} in Phase {phase} (strukturell korrekt)"
             else:
@@ -3118,13 +3121,13 @@ class ARSGUI:
     
     def load_example(self):
         example = """KBG, VBG, KBBd, VBBd, KBA, VBA, KBBd, VBBd, KBA, VAA, KAA, VAV, KAV
-VBG, KBBd, VBBd, VAA, KAA, VBG, KBBd, VAA, KAA
-KBBd, VBBd, VAA, KAA
-KBBd, VBBd, KBA, VBA, KBBd, VBA, KAE, VAE, KAA, VAV, KAV
-KAV, KBBd, VBBd, KBBd, VAA, KAV
-KBG, VBG, KBBd, VBBd, KAA
-KBBd, VBBd, KBA, VAA, KAA
-KBG, VBBd, KBBd, VBA, VAA, KAA, VAV, KAV"""
+KBG, VBG, KBBd, VBBd, KBBd, VBBd, KBA, VBA, VAA, KAA, VAV, KAV
+KBG, VBG, KBBd, VBBd, KBA, VBA, VAA, KAA, VAV, KAV
+KBG, VBG, KBBd, VBBd, KBA, VBA, KAE, VAE, KBA, VBA, VAA, KAA, VAV, KAV
+KBG, VBG, KBBd, VBBd, KBA, VBA, VAA, KAA, VAV, KAV
+KBG, VBG, KBBd, VBBd, KBBd, VBBd, KBBd, VBBd, KBA, VBA, VAA, KAA, VAV, KAV
+KBG, VBG, KBBd, VBBd, KBA, VBA, KAE, VAE, VAA, KAA, VAV, KAV
+KBG, VBG, KBBd, VBBd, KBA, VBA, KBBd, VBBd, KBA, VBA, KAE, VAE, KBA, VBA, VAA, KAA, VAV, KAV"""
         
         self.text_input.delete("1.0", tk.END)
         self.text_input.insert("1.0", example)
