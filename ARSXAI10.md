@@ -1,7 +1,6 @@
 # ARSXAI10 - Algorithmic Recursive Sequence Analysis mit Explainable AI
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![XAI](https://img.shields.io/badge/XAI-Depth--Bounded_PCFG-green.svg)](https://en.wikipedia.org/wiki/Explainable_artificial_intelligence)
 [![Version](https://img.shields.io/badge/version-10.0-red.svg)](.)
 
