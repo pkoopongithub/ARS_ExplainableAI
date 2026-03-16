@@ -1,24 +1,6 @@
 # ARSXAI9 - Algorithmic Recursive Sequence Analysis mit Explainable AI
 
-## 📖 Inhaltsverzeichnis
 
-1. [Einführung und Vision](#-einführung-und-vision)
-2. [Hauptmerkmale](#-hauptmerkmale)
-3. [Neu in Version 9.0](#-neu-in-version-90)
-4. [Installation](#-installation)
-5. [Die zentrale Idee: PCFG-basierte XAI](#-die-zentrale-idee-pcfg-basierte-xai)
-6. [Integrierte Modelle](#-integrierte-modelle)
-7. [Dateiformate](#-dateiformate)
-8. [Benutzeroberfläche](#-benutzeroberfläche)
-9. [Bedienungsanleitung](#-bedienungsanleitung)
-10. [XAI-Erklärungen verstehen](#-xai-erklärungen-verstehen)
-11. [Beispiele](#-beispiele)
-12. [Exportformate](#-exportformate)
-13. [Fehlerbehebung](#-fehlerbehebung)
-14. [Mitwirken](#-mitwirken)
-15. [Lizenz](#-lizenz)
-
----
 
 ## 🎯 Einführung und Vision
 
@@ -99,33 +81,6 @@ Wiederkehrende Muster in Sequenzen sind die natürliche Grundlage für Erklärun
 - **Häufigkeitsangaben** für alle Muster
 
 ---
-
-## 💻 Installation
-
-### Systemvoraussetzungen
-
-- **Python**: 3.8 oder höher
-- **RAM**: 4 GB (empfohlen)
-- **Festplatte**: 500 MB für Abhängigkeiten
-- **OS**: Windows, macOS, Linux
-
-### Automatische Installation
-
-```bash
-# Repository klonen
-git clone https://github.com/yourusername/ARSXAI9.git
-cd ARSXAI9
-
-# Programm starten (Pakete werden automatisch installiert)
-python ARSXAI9.py
-```
-
-### Manuelle Installation
-
-```bash
-# Alle Abhängigkeiten installieren
-pip install numpy scipy matplotlib hmmlearn sklearn-crfsuite sentence-transformers networkx torch seaborn tabulate graphviz
-```
 
 ### Graphviz (für Visualisierung)
 
@@ -589,18 +544,6 @@ pip install -r requirements-dev.txt
 
 ---
 
-## 📄 Lizenz
-
-ARSXAI9 ist unter der **MIT-Lizenz** veröffentlicht.
-
-```
-MIT License
-
-Copyright (c) 2024 Explainable AI Research
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files...
-```
 
 ---
 
