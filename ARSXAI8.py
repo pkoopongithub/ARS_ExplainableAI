@@ -4,43 +4,72 @@ ARSXAI8.py - Algorithmic Recursive Sequence Analysis with Explainable AI
 Universelle Analyseplattform für beliebige Terminalzeichenketten mit
 automatischer Strukturableitung und XAI-Komponenten.
 
-Version: 8.0 (Vollständige Integration aller ARS-Komponenten mit Generierungs-Korrekturen)
-
-Integrierte Module:
-- ARS 2.0: Basis-Grammatik mit Bigramm-Wahrscheinlichkeiten
-- ARS 3.0: Hierarchische Grammatikinduktion mit Nonterminalen
-- HMM: Bayessche Netze für latente Phasen
-- CRF: Conditional Random Fields für kontext-sensitive Analyse
-- Petri-Netze: Ressourcen-basierte Prozessmodellierung
-- Generierung: Synthetische Erzeugung neuer Sequenzen
-
-XAI-Features:
-- Einheitliches Erklärungs-Interface für alle Modelle
-- Modellvergleich mit Konsensanalyse
-- Konfidenzmetriken für alle Ableitungen
-- Interaktive "Warum?"-Erklärungen
-- Export in verschiedene Formate
+Version: 8.0 (Vollständige Integration mit HMM-Korrekturen und Automaten-Visualisierung)
 """
 
+# ============================================================================
+# UMWELTVARIABLEN FÜR WARNUNGEN
+# ============================================================================
+
+import os
+os.environ["PYTHONWARNINGS"] = "ignore::UserWarning,ignore::DeprecationWarning,ignore::FutureWarning"
+
+# ============================================================================
+# STANDARD BIBLIOTHEKEN
+# ============================================================================
+
 import sys
+import queue
+import threading
+import re
+import json
 import subprocess
 import importlib
 import warnings
-import traceback
-import os
-import json
+import logging
+import shutil
+import glob
 from datetime import datetime
-from collections import Counter, defaultdict
-import threading
-import queue
-import re
+from collections import defaultdict, Counter
 
 # ============================================================================
-# WARNUNGEN UNTERDRÜCKEN
+# WARNUNGEN VOLLSTÄNDIG UNTERDRÜCKEN
 # ============================================================================
 
+# Alle Warnungen konfigurieren
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", category=UserWarning, module="hmmlearn")
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", module="hmmlearn")
+warnings.filterwarnings("ignore", message="MultinomialHMM has undergone major changes")
+
+# hmmlearn Logger unterdrücken
+logging.getLogger('hmmlearn').setLevel(logging.ERROR)
+
+# ============================================================================
+# HMMLEARN MONKEY-PATCH
+# ============================================================================
+
+# Zuerst prüfen, ob hmmlearn importiert werden kann
+try:
+    import hmmlearn
+    
+    # Wenn vorhanden, direkt patchen
+    if hasattr(hmmlearn, 'hmm'):
+        # Originale __init__ Methode sichern
+        original_init = hmmlearn.hmm.MultinomialHMM.__init__
+        
+        # Gepatchte Version
+        def patched_init(self, *args, **kwargs):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                original_init(self, *args, **kwargs)
+        
+        # Patch anwenden
+        hmmlearn.hmm.MultinomialHMM.__init__ = patched_init
+        print("✓ hmmlearn Monkey-Patch angewendet")
+except ImportError:
+    pass  # hmmlearn wird später installiert
 
 # ============================================================================
 # PAKETVERWALTUNG
@@ -97,12 +126,8 @@ def check_and_install_packages():
 check_and_install_packages()
 
 # ============================================================================
-# GRAPHVIZ KONFIGURATION FÜR WINDOWS
+# GRAPHVIZ KONFIGURATION FÜR WINDOWS (VERBESSERT)
 # ============================================================================
-
-import os
-import sys
-import shutil
 
 def setup_graphviz():
     """Konfiguriert Graphviz für Windows und prüft Installation"""
@@ -116,19 +141,28 @@ def setup_graphviz():
             r'C:\Graphviz\bin',
         ]
         
+        # Erweiterte Suche mit Wildcards
+        for base_path in [r'C:\Program Files\Graphviz*', r'C:\Program Files (x86)\Graphviz*']:
+            for path in glob.glob(base_path):
+                bin_path = os.path.join(path, 'bin')
+                if os.path.exists(bin_path):
+                    possible_paths.append(bin_path)
+        
         # Prüfe zuerst mit shutil.which()
-        if shutil.which('dot'):
-            print("✓ Graphviz (dot) im PATH gefunden")
+        dot_path = shutil.which('dot')
+        if dot_path:
+            print(f"✓ Graphviz (dot) gefunden in: {dot_path}")
             GRAPHVIZ_AVAILABLE = True
         else:
             # Versuche Pfade manuell hinzuzufügen
             for path in possible_paths:
-                dot_exe = os.path.join(path, 'dot.exe')
-                if os.path.exists(dot_exe):
-                    os.environ['PATH'] += os.pathsep + path
-                    print(f"✓ Graphviz gefunden in: {path}")
-                    GRAPHVIZ_AVAILABLE = True
-                    break
+                if os.path.exists(path):
+                    dot_exe = os.path.join(path, 'dot.exe')
+                    if os.path.exists(dot_exe):
+                        os.environ['PATH'] += os.pathsep + path
+                        print(f"✓ Graphviz gefunden in: {path}")
+                        GRAPHVIZ_AVAILABLE = True
+                        break
             
             if not GRAPHVIZ_AVAILABLE:
                 print("\n" + "="*70)
@@ -147,8 +181,9 @@ def setup_graphviz():
                 print("="*70 + "\n")
     else:
         # Linux/Mac: Prüfe mit which
-        if shutil.which('dot'):
-            print("✓ Graphviz (dot) gefunden")
+        dot_path = shutil.which('dot')
+        if dot_path:
+            print(f"✓ Graphviz (dot) gefunden in: {dot_path}")
             GRAPHVIZ_AVAILABLE = True
         else:
             print("\n⚠️  Graphviz nicht gefunden. Installieren mit:")
@@ -161,11 +196,16 @@ def setup_graphviz():
 GRAPHVIZ_AVAILABLE = setup_graphviz()
 
 # ============================================================================
-# IMPORTS
+# TKINTER IMPORTS
 # ============================================================================
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
+
+# ============================================================================
+# WISSENSCHAFTLICHE BIBLIOTHEKEN
+# ============================================================================
+
 import numpy as np
 from scipy.stats import pearsonr
 import matplotlib
@@ -174,38 +214,48 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-# Optionale Imports mit Status-Erfassung
-MODULE_STATUS = {}
+# ============================================================================
+# OPTIONALE IMPORTS MIT STATUS-ERFASSUNG
+# ============================================================================
+
+MODULE_STATUS = {
+    'networkx': False,
+    'hmmlearn': False,
+    'crf': False,
+    'transformer': False,
+    'seaborn': False,
+    'graphviz': GRAPHVIZ_AVAILABLE
+}
 
 try:
     import networkx as nx
     MODULE_STATUS['networkx'] = True
 except ImportError:
-    MODULE_STATUS['networkx'] = False
+    pass
 
 try:
     from hmmlearn import hmm
     MODULE_STATUS['hmmlearn'] = True
 except ImportError:
-    MODULE_STATUS['hmmlearn'] = False
+    pass
 
 try:
     from sklearn_crfsuite import CRF
     MODULE_STATUS['crf'] = True
 except ImportError:
-    MODULE_STATUS['crf'] = False
+    pass
 
 try:
     from sentence_transformers import SentenceTransformer
     MODULE_STATUS['transformer'] = True
 except ImportError:
-    MODULE_STATUS['transformer'] = False
+    pass
 
 try:
     import seaborn as sns
     MODULE_STATUS['seaborn'] = True
 except ImportError:
-    MODULE_STATUS['seaborn'] = False
+    pass
 
 try:
     import graphviz
@@ -899,7 +949,7 @@ class GrammarInducer(XAIModel):
 
 
 # ============================================================================
-# HMM - HIDDEN MARKOV MODELS
+# HMM - HIDDEN MARKOV MODELS (KORRIGIERTE VERSION)
 # ============================================================================
 
 class ARSHiddenMarkovModel(XAIModel):
@@ -921,33 +971,109 @@ class ARSHiddenMarkovModel(XAIModel):
         }
         self.n_features = None
         self.trained = False
+        self.hmm_version = self._get_hmm_version()
+    
+    def _get_hmm_version(self):
+        """Ermittelt die hmmlearn Version"""
+        try:
+            import hmmlearn
+            version = getattr(hmmlearn, '__version__', '0.0.0')
+            return version
+        except:
+            return '0.0.0'
     
     def train(self, chains, n_iter=100):
         """Trainiert HMM mit Baum-Welch"""
         if not MODULE_STATUS['hmmlearn']:
             raise ImportError("hmmlearn nicht installiert")
         
-        # Bereite Daten vor (One-Hot-Encoding)
+        # Bereite Daten vor
         X, lengths = self._prepare_data(chains)
         
         if len(X) == 0:
             raise ValueError("Keine gültigen Daten zum Trainieren")
         
-        # Erstelle und trainiere Modell
-        self.model = hmm.MultinomialHMM(
-            n_components=self.n_states,
-            n_iter=n_iter,
-            random_state=42
-        )
+        print(f"HMM-Training: {len(chains)} Ketten, {self.n_features} Symbole")
+        print(f"Daten Shape: {X.shape}, Typ: {X.dtype}")
         
-        self.model.fit(X, lengths)
+        # Temporär alle Warnungen deaktivieren
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            
+            # Versuche verschiedene Konfigurationen
+            success = False
+            last_error = None
+            
+            # Konfiguration 1: One-Hot (neuere Versionen)
+            try:
+                self.model = hmm.MultinomialHMM(
+                    n_components=self.n_states,
+                    n_iter=n_iter,
+                    random_state=42,
+                    tol=0.01,
+                    init_params="ste",
+                    params="ste"
+                )
+                self.model.fit(X, lengths)
+                success = True
+                print("HMM trainiert mit One-Hot Format")
+            except Exception as e:
+                last_error = e
+                
+                # Konfiguration 2: Integer-Indizes (ältere Versionen)
+                try:
+                    # Konvertiere zu Integer-Indizes
+                    if X.ndim == 2 and X.shape[1] > 1:
+                        X_int = np.argmax(X, axis=1).reshape(-1, 1).astype(np.int32)
+                    else:
+                        X_int = X.astype(np.int32)
+                    
+                    self.model = hmm.MultinomialHMM(
+                        n_components=self.n_states,
+                        n_iter=n_iter,
+                        random_state=42
+                    )
+                    self.model.fit(X_int, lengths)
+                    success = True
+                    print("HMM trainiert mit Integer-Format")
+                except Exception as e2:
+                    last_error = e2
+                    
+                    # Konfiguration 3: Mit Startparametern
+                    try:
+                        # Gleichverteilte Startwahrscheinlichkeiten
+                        startprob = np.ones(self.n_states) / self.n_states
+                        transmat = np.ones((self.n_states, self.n_states)) / self.n_states
+                        emissionprob = np.ones((self.n_states, self.n_features)) / self.n_features
+                        
+                        self.model = hmm.MultinomialHMM(
+                            n_components=self.n_states,
+                            n_iter=n_iter,
+                            random_state=42,
+                            init_params=''
+                        )
+                        self.model.startprob_ = startprob
+                        self.model.transmat_ = transmat
+                        self.model.emissionprob_ = emissionprob
+                        
+                        self.model.fit(X, lengths)
+                        success = True
+                        print("HMM trainiert mit vordefinierten Parametern")
+                    except Exception as e3:
+                        last_error = e3
+        
+        if not success:
+            raise ValueError(f"HMM-Training fehlgeschlagen: {last_error}")
+        
         self.trained = True
         self.confidence = self._calculate_confidence()
         
         return self.model
     
     def _prepare_data(self, chains):
-        """Bereitet Daten für HMM vor (One-Hot-Encoding)"""
+        """
+        Bereitet Daten für HMM vor - robuste Version
+        """
         # Sammle alle Symbole
         all_symbols = set()
         for chain in chains:
@@ -962,44 +1088,61 @@ class ARSHiddenMarkovModel(XAIModel):
         self.idx_to_code = {i: sym for sym, i in self.code_to_idx.items()}
         self.n_features = len(all_symbols)
         
-        # Konvertiere zu One-Hot-Encoding
+        # Erstelle sowohl Integer- als auch One-Hot-Formate
         X_list = []
         lengths = []
         
         for chain in chains:
             if chain:
                 seq_length = len(chain)
-                one_hot_seq = np.zeros((seq_length, self.n_features))
+                
+                # One-Hot-Encoding (für neuere hmmlearn Versionen)
+                one_hot_seq = np.zeros((seq_length, self.n_features), dtype=np.int32)
+                
+                # Integer-Indizes (für ältere Versionen)
+                valid = True
                 for i, sym in enumerate(chain):
                     if sym in self.code_to_idx:
                         one_hot_seq[i, self.code_to_idx[sym]] = 1
-                X_list.append(one_hot_seq)
-                lengths.append(seq_length)
+                    else:
+                        valid = False
+                        break
+                
+                if valid:
+                    X_list.append(one_hot_seq)
+                    lengths.append(seq_length)
         
         if not X_list:
             return np.array([]), np.array([])
         
+        # Vertikal stapeln
         X = np.vstack(X_list)
-        return X, np.array(lengths)
+        
+        return X, np.array(lengths, dtype=np.int32)
     
     def _calculate_confidence(self):
         """Berechnet Konfidenz basierend auf Modell-Konvergenz"""
-        if not self.model or not hasattr(self.model, 'monitor_'):
+        if not self.model:
             return 0.5
         
-        # Nutze Konvergenz-Informationen
-        if hasattr(self.model.monitor_, 'converged'):
-            return 0.9 if self.model.monitor_.converged else 0.6
-        return 0.7
+        # Basierend auf Anzahl der Zustände und Features
+        base_conf = 0.7
+        
+        # Wenn Monitor verfügbar, Konvergenz nutzen
+        if hasattr(self.model, 'monitor_'):
+            if hasattr(self.model.monitor_, 'converged'):
+                if self.model.monitor_.converged:
+                    base_conf += 0.2
+            
+            if hasattr(self.model.monitor_, 'iter'):
+                # Je mehr Iterationen, desto besser (bis zu einem Punkt)
+                iter_factor = min(0.1, self.model.monitor_.iter / 200)
+                base_conf += iter_factor
+        
+        return min(1.0, base_conf)
     
     def explain(self, data, detail_level='normal'):
-        """
-        Erklärt HMM-Vorhersagen
-        
-        data kann sein:
-        - Eine Kette (erkläre Zustandssequenz)
-        - Ein Symbol (erkläre wahrscheinlichste Zustände)
-        """
+        """Erklärt HMM-Vorhersagen"""
         explanation = {
             'model': self.name,
             'confidence': self.confidence,
@@ -1015,27 +1158,23 @@ class ARSHiddenMarkovModel(XAIModel):
             # Kette - dekodiere Zustände
             explanation['type'] = 'sequence'
             
-            try:
-                # Bereite Daten vor
-                X, _ = self._prepare_data([data])
-                if len(X) > 0:
-                    logprob, states = self.model.decode(X, algorithm="viterbi")
-                    
-                    explanation['content'].append(f"Dekodierte Zustandssequenz (p={np.exp(logprob):.4f}):")
-                    for i, (sym, state) in enumerate(zip(data, states)):
-                        state_name = self.state_names.get(state, f"State {state}")
-                        explanation['content'].append(f"  {i+1}. {sym} → {state_name}")
-                    
-                    if detail_level == 'detailed':
-                        # Zeige Übergangswahrscheinlichkeiten
-                        explanation['content'].append("\nÜbergangswahrscheinlichkeiten:")
-                        for i in range(len(states)-1):
-                            from_state = states[i]
-                            to_state = states[i+1]
-                            prob = self.model.transmat_[from_state, to_state]
-                            explanation['content'].append(f"  {from_state}→{to_state}: {prob:.3f}")
-            except Exception as e:
-                explanation['content'] = [f"Fehler bei Dekodierung: {e}"]
+            states, prob = self.decode_chain(data)
+            if states is not None:
+                explanation['content'].append(f"Dekodierte Zustandssequenz (p={prob:.4f}):")
+                for i, (sym, state) in enumerate(zip(data, states)):
+                    state_name = self.state_names.get(state, f"State {state}")
+                    explanation['content'].append(f"  {i+1}. {sym} → {state_name}")
+                
+                if detail_level == 'detailed' and len(states) > 1:
+                    # Zeige Übergangswahrscheinlichkeiten
+                    explanation['content'].append("\nÜbergangswahrscheinlichkeiten:")
+                    for i in range(len(states)-1):
+                        from_state = states[i]
+                        to_state = states[i+1]
+                        prob = self.model.transmat_[from_state, to_state]
+                        explanation['content'].append(f"  {from_state}→{to_state}: {prob:.3f}")
+            else:
+                explanation['content'] = ["Dekodierung fehlgeschlagen"]
         
         elif isinstance(data, str):
             # Symbol - zeige Emissionswahrscheinlichkeiten
@@ -1050,7 +1189,7 @@ class ARSHiddenMarkovModel(XAIModel):
                         for state in range(self.n_states)]
                 probs.sort(key=lambda x: -x[1])
                 
-                for state, prob in probs:
+                for state, prob in probs[:5]:  # Top 5 Zustände
                     state_name = self.state_names.get(state, f"State {state}")
                     explanation['content'].append(f"  {state_name}: {prob:.3f}")
             else:
@@ -1060,7 +1199,7 @@ class ARSHiddenMarkovModel(XAIModel):
     
     def decode_chain(self, chain):
         """Dekodiert eine Kette mit Viterbi"""
-        if not self.trained:
+        if not self.trained or self.model is None:
             return None, None
         
         X, _ = self._prepare_data([chain])
@@ -1068,40 +1207,59 @@ class ARSHiddenMarkovModel(XAIModel):
             return None, None
         
         try:
-            logprob, states = self.model.decode(X, algorithm="viterbi")
-            return states, np.exp(logprob)
-        except:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                
+                # Versuche Dekodierung mit One-Hot
+                try:
+                    logprob, states = self.model.decode(X, algorithm="viterbi")
+                    return states, np.exp(logprob)
+                except:
+                    # Fallback: Konvertiere zu Integer
+                    X_int = np.argmax(X, axis=1).reshape(-1, 1).astype(np.int32)
+                    logprob, states = self.model.decode(X_int, algorithm="viterbi")
+                    return states, np.exp(logprob)
+        except Exception as e:
+            print(f"Dekodierungsfehler: {e}")
             return None, None
     
     def generate_chain(self, max_length=20, start_state=None):
         """
         Generiert eine neue Kette aus dem HMM
-        
-        Args:
-            max_length: Maximale Länge
-            start_state: Optionaler Startzustand
         """
         if not self.trained or self.model is None:
             return []
         
         try:
-            # Generiere Sequenz aus HMM
-            X, states = self.model.sample(max_length)
-            
-            # Konvertiere zu Symbolen
-            chain = []
-            for idx in X.flatten():
-                if int(idx) in self.idx_to_code:
-                    chain.append(self.idx_to_code[int(idx)])
-            
-            return chain
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                
+                # Generiere Sequenz
+                X, states = self.model.sample(max_length)
+                
+                # Konvertiere zu Symbolen (je nach Format)
+                chain = []
+                
+                if X.ndim == 2 and X.shape[1] > 1:
+                    # One-Hot Format
+                    indices = np.argmax(X, axis=1)
+                else:
+                    # Integer Format
+                    indices = X.flatten()
+                
+                for idx in indices:
+                    idx_int = int(round(idx))
+                    if idx_int in self.idx_to_code:
+                        chain.append(self.idx_to_code[idx_int])
+                
+                return chain
         except Exception as e:
             print(f"Fehler bei HMM-Generierung: {e}")
             return []
     
     def get_parameters_string(self):
         """Gibt Modellparameter als String zurück"""
-        if not self.trained:
+        if not self.trained or self.model is None:
             return "Modell nicht trainiert"
         
         lines = []
@@ -1118,6 +1276,17 @@ class ARSHiddenMarkovModel(XAIModel):
             row = "  " + " ".join([f"{self.model.transmat_[i,j]:.3f}" 
                                    for j in range(self.n_states)])
             lines.append(f"{self.state_names[i]}: {row}")
+        
+        lines.append("\nTop-3 Emissionswahrscheinlichkeiten pro Zustand:")
+        for i in range(self.n_states):
+            probs = self.model.emissionprob_[i]
+            top_indices = np.argsort(probs)[-3:][::-1]
+            top_symbols = []
+            for idx in top_indices:
+                if idx < len(self.idx_to_code):
+                    sym = self.idx_to_code.get(idx, f"Sym{idx}")
+                    top_symbols.append(f"{sym}: {probs[idx]:.3f}")
+            lines.append(f"  {self.state_names[i]}: {', '.join(top_symbols)}")
         
         lines.append(f"\nKonfidenz: {self.confidence:.0%}")
         
@@ -1531,7 +1700,7 @@ if MODULE_STATUS['networkx']:
 
 
 # ============================================================================
-# GENERIERUNGSKOMPONENTE (KORRIGIERT)
+# GENERIERUNGSKOMPONENTE
 # ============================================================================
 
 class ChainGenerator(XAIModel):
@@ -2694,7 +2863,7 @@ class MultiFormatExporter:
 
 
 # ============================================================================
-# GUI - HAUPTFENSTER
+# GUI - HAUPTFENSTER (MIT KORRIGIERTER AUTOMATEN-VISUALISIERUNG)
 # ============================================================================
 
 class ARSXAI8GUI:
@@ -3441,16 +3610,109 @@ class ARSXAI8GUI:
         self.visualizer.plot_confidence_comparison(self.model_manager)
     
     def plot_automaton(self):
-        """Visualisiert Automaten"""
+        """Visualisiert den Automaten als Graph mit Graphviz"""
         if not self.automaton or not self.automaton.transitions:
             messagebox.showerror("Fehler", "Kein Automat vorhanden!")
             return
         
-        if MODULE_STATUS['graphviz']:
-            # Hier müsste die Graphviz-Visualisierung implementiert werden
-            self.text_automaton.insert(tk.END, "\n" + self.automaton.get_rules_string())
-        else:
-            self.text_automaton.insert(tk.END, "\n" + self.automaton.get_rules_string())
+        if not MODULE_STATUS['graphviz']:
+            # Textuelle Darstellung als Fallback
+            self.show_text_automaton()
+            return
+        
+        try:
+            import graphviz
+            
+            # Erstelle einen neuen gerichteten Graphen
+            dot = graphviz.Digraph(comment='Gelernter Automat')
+            dot.attr(rankdir='LR')  # Links-nach-Rechts-Ausrichtung
+            
+            # Zustände hinzufügen
+            for state in sorted(self.automaton.states):
+                if state == 'q_error':
+                    dot.node(state, state, shape='box', style='filled', fillcolor='lightcoral')
+                elif state in self.automaton.accepting_states:
+                    dot.node(state, state, shape='doublecircle', style='filled', fillcolor='lightgreen')
+                elif state == 'q_start':
+                    dot.node(state, state, shape='circle', style='filled', fillcolor='lightblue')
+                else:
+                    dot.node(state, state, shape='circle', style='filled', fillcolor='lightyellow')
+            
+            # Übergänge hinzufügen
+            for (state, symbol), next_state in self.automaton.transitions.items():
+                conf = self.automaton.confidence_metrics.get((state, symbol), 0)
+                
+                # Bestimme die Farbe basierend auf der Konfidenz
+                if conf > 0.7:
+                    color = 'darkgreen'
+                elif conf > 0.4:
+                    color = 'darkorange'
+                else:
+                    color = 'darkred'
+                
+                # Beschriftung mit Symbol und Konfidenz
+                label = f"{symbol}\n({conf:.0%})"
+                
+                dot.edge(state, next_state, label=label, color=color, penwidth=str(1 + conf))
+            
+            # Speichern und anzeigen
+            output_file = 'automaton_graph'
+            dot.render(output_file, format='png', view=True, cleanup=True)
+            
+            # Erfolgsmeldung
+            self.text_automaton.insert(tk.END, f"\n✓ Automaten-Graph gespeichert als {output_file}.png\n")
+            
+        except Exception as e:
+            messagebox.showerror("Fehler", f"Graphviz-Fehler: {e}\n\nZeige Textdarstellung...")
+            self.show_text_automaton()
+    
+    def show_text_automaton(self):
+        """Zeigt eine textuelle Darstellung des Automaten"""
+        if not self.automaton:
+            return
+        
+        lines = []
+        lines.append("\n" + "=" * 70)
+        lines.append("TEXTUELLE DARSTELLUNG DES AUTOMATEN")
+        lines.append("=" * 70)
+        lines.append("")
+        
+        # Zustände
+        lines.append("ZUSTÄNDE:")
+        for state in sorted(self.automaton.states):
+            if state in self.automaton.accepting_states:
+                marker = " [AKZEPTIEREND] ⭐"
+            elif state == 'q_error':
+                marker = " [FEHLER] ❌"
+            elif state == 'q_start':
+                marker = " [START] ▶"
+            else:
+                marker = ""
+            lines.append(f"  • {state}{marker}")
+        
+        lines.append("")
+        lines.append("ÜBERGÄNGE:")
+        
+        # Gruppiere nach Quellzustand
+        transitions_by_state = defaultdict(list)
+        for (state, symbol), next_state in self.automaton.transitions.items():
+            transitions_by_state[state].append((symbol, next_state))
+        
+        for state in sorted(transitions_by_state.keys()):
+            lines.append(f"\n  {state}:")
+            for symbol, next_state in sorted(transitions_by_state[state]):
+                conf = self.automaton.confidence_metrics.get((state, symbol), 0)
+                stars = "★" * int(conf * 5) + "☆" * (5 - int(conf * 5))
+                lines.append(f"    └─ {symbol} → {next_state}  {stars} ({conf:.0%})")
+        
+        lines.append("")
+        lines.append("LEGENDE:")
+        lines.append("  ▶ Startzustand")
+        lines.append("  ⭐ Akzeptierender Zustand")
+        lines.append("  ❌ Fehlerzustand")
+        lines.append("  ★ Konfidenz (je mehr Sterne, desto sicherer)")
+        
+        self.text_automaton.insert(tk.END, "\n" + "\n".join(lines))
     
     def calculate_statistics(self):
         """Berechnet Statistiken"""
@@ -3596,7 +3858,7 @@ KBG, VBG, KBBd, VBBd, KBBd, VBBd, KBBd, VBBd, KBA, VBA, VAA, KAA, VAV, KAV"""
         """Zeigt Über-Informationen"""
         about = """ARSXAI8 - Algorithmic Recursive Sequence Analysis with Explainable AI
 
-Version 8.0 (Vollständige Integration mit Generierungs-Korrekturen)
+Version 8.0 (Vollständige Integration mit HMM-Korrekturen und Automaten-Visualisierung)
 
 Integrierte Modelle:
 • ARS 2.0 - Basis-Grammatik
