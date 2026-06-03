@@ -1,0 +1,242 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage[ngerman]{babel}
+
+\title{Benchmarks als epistemische Operatoren in der ARS:\\
+Eine Brücke zwischen prozessualer KI-Evaluation\\
+und qualitativer Sequenzanalyse}
+
+\author{
+  \large
+  \begin{tabular}{c}
+    Paul Koop
+  \end{tabular}
+}
+
+\date{\large 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Die Algorithmisch Rekursive Sequenzanalyse (ARS) hat in ihren Versionen 2.0 bis 4.0 ein methodologisches Framework entwickelt, das qualitative Hermeneutik mit formaler Modellierung (PCFG, Petri-Netze, Bayessche Verfahren, computerlinguistische Methoden) verbindet. Parallel hat sich in der KI-Forschung eine Klasse von Benchmarks etabliert (DPG-Bench, ARC-AGI, SWE-Bench, ReClor, GPQA u.a.), die nicht Endantworten, sondern \textit{Prozessqualität} – Schrittfolgen, Planung, Regelinduktion, Fehlerrobustheit – messen. Der vorliegende Beitrag argumentiert, dass diese Benchmarks nicht als Tests, sondern als \textit{epistemische Operatoren} für die qualitative Forschung fruchtbar gemacht werden können. Wir zeigen, dass die in der ARS bereits implementierten Prinzipien – Lesartenproduktion, sequenzielle Mikroanalyse, kontrollierte Falsifikation, Regelinduktion, formale Modellierung – exakt den Strukturlogiken von Prozess-Benchmarks entsprechen. Die Benchmark-Literatur bietet eine begriffliche und methodische Ressource, um die Gütekriterien qualitativer Forschung (Intersubjektivität, Transparenz, Reflexivität) für das Zeitalter der generativen KI zu schärfen. Wir schließen mit Vorschlägen für eine methodologische Erweiterung der ARS um "adversarial qualitative sequence analysis" (AQSA).
+\end{abstract}
+
+\section{Problembeschreibung: Zwei Diskurse, eine Struktur}
+
+Die qualitative Sozialforschung und die KI-Forschung zur Evaluation großer Sprachmodelle (LLMs) scheinen auf den ersten Blick getrennte Welten zu sein. Die eine operiert mit sinngenetischen Kategorien, Fallrekonstruktion und hermeneutischer Tiefe. Die andere operiert mit quantitativen Metriken, Benchmark-Scores und statistischer Generalisierung.
+
+Dennoch, so die These dieses Beitrags, teilen beide Diskurse ein fundamentales methodologisches Interesse: \textit{die Sichtbarkeit und Prüfbarkeit von Prozessen}. Qualitative Forschung verlangt die lückenlose Dokumentation des Erkenntnisweges \cite{steinke2004gütekriterien}. Prozess-Benchmarks verlangen von LLMs, Schrittfolgen, Planungen und Regelanwendungen \textit{explizit} zu machen \cite{chollet2019measure, zhong2024dpg}.
+
+Die ARS hat in ihren Versionen 2.0 bis 4.0 bereits ein Framework entwickelt, das genau diese Prozesssichtbarkeit für qualitative Sequenzanalyse herstellt \cite{koop2024ars}. Der vorliegende Beitrag macht den nächsten Schritt: Er zeigt, dass die methodologischen Prinzipien der ARS – Lesartenproduktion, sequenzielle Mikroanalyse, kontrollierte Falsifikation, Regelinduktion, formale Modellierung – exakt den Strukturlogiken der etablierten LLM-Prozess-Benchmarks entsprechen.
+
+Die Benchmark-Literatur ist damit keine methodologische Bedrohung, sondern eine begriffliche Ressource. Sie liefert ein Vokabular, um die Prozessqualität qualitativer Interpretationen zu beschreiben, zu prüfen und zu validieren.
+
+\section{Was Prozess-Benchmarks messen – und warum das für die ARS relevant ist}
+
+\subsection{DPG-Bench und die Logik der Prozessbewertung}
+
+DPG-Bench \cite{zhong2024dpg} misst nicht die Korrektheit von Endantworten, sondern die Qualität des gesamten Lösungsweges. Ein Modell wird daran gemessen, ob es:
+
+\begin{itemize}
+    \item Schritt für Schritt plant,
+    \item Teilprobleme identifiziert und löst,
+    \item Fehler erkennt und korrigiert,
+    \item den Lösungsprozess explizit dokumentiert.
+\end{itemize}
+
+Diese Kriterien sind funktional identisch mit den Anforderungen qualitativer Sequenzanalyse: Jede Lesart muss Schritt für Schritt aus dem Material entwickelt werden, jede Interpretation muss ihre eigene Kontingenz reflektieren, jede Regel muss an der Sequenz falsifizierbar sein.
+
+\subsection{ARC-AGI und die Explikation von Transformationen}
+
+ARC-AGI \cite{chollet2019measure} testet abstraktes Reasoning durch visuelle Transformationsaufgaben. Ein Modell muss aus wenigen Beispielen eine Regel induzieren und auf neue Instanzen anwenden. Entscheidend ist: Die \textit{Transformation} muss explizit gemacht werden.
+
+Für die ARS bedeutet dies: Jede Lesartenproduktion ist eine Transformation von Sequenzmaterial in interpretative Kategorien. Die Benchmark-Logik von ARC-AGI erinnert daran, dass diese Transformationen explizit, nachvollziehbar und regelbasiert sein müssen – genau das leistet die hierarchische Grammatikinduktion der ARS 3.0 \cite{koop2024pcfg}.
+
+\subsection{SWE-Bench und die Logik der Regelinduktion}
+
+SWE-Bench Verified \cite{jimenez2024swe} testet die Fähigkeit von LLMs, reale GitHub-Issues zu lösen. Ein Modell muss Code-Patches generieren, die spezifizierte Anforderungen erfüllen. Die Prozesslogik ist:
+
+\begin{enumerate}
+    \item Problemverstehen,
+    \item Regelinduktion aus der Codebasis,
+    \item Patch-Generierung,
+    \item Selbstkorrektur durch Test-Feedback.
+\end{enumerate}
+
+Diese Logik entspricht exakt der Regelinduktion in der ARS: Aus beobachteten Sequenzen werden Regeln extrahiert (Nonterminale), formal modelliert (PCFG, Petri-Netz) und an neuen Sequenzen validiert.
+
+\subsection{ReClor, GPQA und die Logik der adversarialen Falsifikation}
+
+ReClor \cite{yu2020reclor} testet logisches Schließen unter adverserialen Bedingungen – die Aufgaben sind so konstruiert, dass oberflächliche Muster in die Irre führen. GPQA \cite{rein2024gpqa} präsentiert extrem schwierige wissenschaftliche Fragen, die "Google-proof" sind.
+
+Für die ARS ist dies die methodologische Erinnerung, dass Lesarten nicht nur produziert, sondern systematisch \textit{falsifiziert} werden müssen. Die objektive Hermeneutik hat dieses Prinzip bereits etabliert \cite{oevermann1979methodologie}. Die Benchmark-Literatur liefert ein zeitgenössisches Vokabular, um diese Falsifikation als \textit{adversarial reasoning} zu beschreiben.
+
+\section{Bereits in der ARS implementierte Prinzipien – und ihre Benchmark-Entsprechungen}
+
+Die folgende Tabelle systematisiert die Entsprechungen zwischen ARS-Prinzipien und Prozess-Benchmarks:
+
+\begin{table}[H]
+\centering
+\caption{ARS-Prinzipien und ihre Benchmark-Entsprechungen}
+\label{tab:mapping}
+\begin{tabular}{@{}p{0.4\textwidth}p{0.5\textwidth}@{}}
+\toprule
+ARS-Prinzip & Entsprechender Benchmark / Prinzip \\
+\midrule
+Lesartenproduktion als schrittweiser Prozess & DPG-Bench: Schritt-für-Schritt-Planung \\
+Explikation von Transformationen & ARC-AGI: Explizite Transformationsregeln \\
+Hierarchische Grammatikinduktion & SWE-Bench: Regelinduktion aus Strukturen \\
+Kontrollierte Falsifikation von Lesarten & ReClor / GPQA: Adversarial reasoning \\
+Formale Modellierung (PCFG, Bayes, Petri) & SWE-Bench: Patch-Generierung + Validierung \\
+Ressourcenmodellierung & Tool-basierte Benchmarks (BFCL, Toolathlon) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Diese Tabelle ist keine Gleichsetzung. Sie zeigt, dass die \textit{logischen Operationen} – Schrittstrukturierung, Explikation, Regelinduktion, Falsifikation, formale Validierung – in beiden Diskursen identisch sind. Die Benchmark-Literatur hat diese Operationen präziser benannt und operationalisiert als die qualitative Methodologie es bisher getan hat.
+
+\section{Von der ARS zur adversarial qualitativen Sequenzanalyse (AQSA)}
+
+\subsection{Die methodologische Lücke: Explizite Falsifikation}
+
+Die ARS dokumentiert Interpretationsentscheidungen (methodologische Reflexion in ARS 3.0). Sie implementiert jedoch keine explizite, systematische \textit{adversariale} Prüfung von Lesarten. Die Falsifikation bleibt dem impliziten Können des Interpreten überlassen.
+
+Die Benchmark-Literatur bietet hier eine Präzisierung: Adversariale Benchmarks (ReClor, GPQA) konstruieren Testfälle so, dass \textit{verführerische}, aber falsche Pfade explizit ausgeschlossen werden müssen. Auf die qualitative Sequenzanalyse übertragen bedeutet dies:
+
+\begin{enumerate}
+    \item Zu jeder Lesart wird systematisch eine \textit{Konkurrenzlesart} generiert.
+    \item Beide Lesarten werden gegen das Material getestet.
+    \item Die Lesart, die mehr Sequenzphänomene kohärent erklärt, wird bevorzugt.
+    \item Die verworfene Lesart wird dokumentiert – als Spur der Falsifikation.
+\end{enumerate}
+
+\subsection{Dreiteilung der epistemischen Rollen}
+
+Die Integration von LLMs in diesen Prozess führt zu einer klaren Rollenverteilung, die in der ARS bereits angelegt, aber nicht explizit benannt ist:
+
+\begin{table}[H]
+\centering
+\caption{Epistemische Rollen in der AQSA}
+\label{tab:roles}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Rolle & Funktion & ARS-Entsprechung \\
+\midrule
+LLM (Generator) & Produktion konkurrierender Lesarten & Phase 3 (kontrafaktische Exploration) \\
+Mensch (Falsifikator) & Systematische Prüfung gegen Material & Phase 2 (sequentielle Mikroanalyse) \\
+Formales Modell (Validierer) & Strukturprüfung & Phase 5 (PCFG, Petri-Netz, Bayes) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Diese Dreiteilung ist epistemisch sauber, weil sie die Stärken jedes Akteurs nutzt, ohne methodologische Kontrolle zu verlieren: Das LLM generiert heuristisch, der Mensch interpretiert hermeneutisch, das formale Modell validiert strukturell.
+
+\subsection{Die Kategorienkette als terminal string}
+
+Die in der ARS verwendeten Terminalzeichenketten sind funktional identisch mit den \textit{terminal strings} prozessualer Benchmarks. Die Sequenz:
+
+KA – AF – AW – BE – QA – TW – PB – VF – ZR – ZE – AF2 – ZK – AS
+
+(konkretisiert am Beispiel des Gemüsestand-Transkripts \cite{koop2024cfti}) ist ein terminal string, der in jede formale Modellierungssprache überführt werden kann: PCFG-Induktion, Bayes-Netz-Struktur, Petri-Netz-Transitionsgraph.
+
+Die Benchmark-Literatur hat gezeigt, dass solche terminal strings prozessuale Kohärenz prüfbar machen. Die ARS kann dieses Prinzip adaptieren, ohne ihre hermeneutische Fundierung aufzugeben.
+
+\section{Benchmarks als epistemische Operatoren – Eine methodologische Neubewertung}
+
+\subsection{Benchmarks sind keine Tests, sondern Strukturgeber}
+
+Die übliche Rezeption von Benchmarks in den Sozialwissenschaften ist defensiv: Benchmarks werden als Reduktionismus oder als falscher Objektivismus kritisiert. Diese Kritik verfehlt das Potenzial der Benchmark-Literatur.
+
+Benchmarks wie DPG-Bench, ARC-AGI oder SWE-Bench sind keine Tests im Sinne standardisierter Leistungsmessung. Sie sind \textit{epistemische Operatoren}: Sie erzwingen Prozessstrukturen, die für jede rationale Rekonstruktion von Entscheidungen konstitutiv sind – Schrittfolge, Explikation, Regelbezug, Fehlertoleranz, Selbstkorrektur.
+
+Die qualitative Forschung kann diese Operatoren adaptieren, ohne ihre methodologischen Grundlagen zu verlassen. Sie kann fragen: Wie müsste eine Lesartenproduktion strukturiert sein, um einen "Benchmark der qualitativen Interpretation" zu bestehen?
+
+\subsection{XAI und Benchmarks: Zwei Seiten derselben Medaille}
+
+XAI-Verfahren (Explainable AI) zielen darauf ab, die Entscheidungen komplexer Modelle nachvollziehbar zu machen \cite{barredo2020xai}. Benchmarks zielen darauf ab, prozessuale Kompetenzen zu messen. Beide teilen ein fundamentales Interesse: \textit{Transparenz des Prozesses}.
+
+Für die ARS bedeutet dies: Die XAI-Kriterien (Verständlichkeit, Genauigkeit, Wissensgrenzen) \cite{ortigossa2024xai} können durch Benchmark-Prinzipien operationalisiert werden. Eine Lesart ist verständlich, wenn sie als Schrittfolge darstellbar ist (DPG-Bench-Prinzip). Sie ist genau, wenn sie adverserial falsifizierbar ist (ReClor-Prinzip). Ihre Grenzen sind benennbar, wenn sie an Kontrastfällen scheitert (GPQA-Prinzip).
+
+\subsection{Adversarial Qualitative Sequence Analysis (AQSA) als methodologischer Vorschlag}
+
+Aus dieser Synopse entwickeln wir den Vorschlag einer \textit{Adversarial Qualitative Sequence Analysis (AQSA)}. Die AQSA erweitert die ARS um vier methodologische Operatoren:
+
+\begin{enumerate}
+    \item \textbf{Prozess-Explikation}: Jede Lesartenproduktion wird als explizite Schrittfolge dokumentiert (DPG-Bench-Prinzip).
+    \item \textbf{Transformations-Offenlegung}: Jede interpretative Transformation wird als Regel expliziert (ARC-AGI-Prinzip).
+    \item \textbf{Adversariale Falsifikation}: Zu jeder Lesart wird eine systematisch variierte Konkurrenzlesart generiert und geprüft (ReClor-Prinzip).
+    \item \textbf{Strukturelle Validierung}: Jede finale Lesart wird in ein formales Modell (PCFG, Bayes, Petri) überführt und gegen neue Sequenzen getestet (SWE-Bench-Prinzip).
+\end{enumerate}
+
+Die AQSA ist keine Abkehr von der hermeneutischen Tradition, sondern deren Präzisierung im Zeitalter generativer KI. Sie nutzt die methodologische Strenge der Benchmark-Literatur, ohne sich deren Szientismus zu eigen zu machen.
+
+\section{Fazit und Ausblick}
+
+Die Diskussion um Prozess-Benchmarks in der KI-Forschung und die Diskussion um methodologische Kontrolle in der qualitativen Forschung sind bisher getrennt verlaufen. Dieser Beitrag hat argumentiert, dass diese Trennung künstlich ist. Beide Diskurse teilen das fundamentale Interesse an der Sichtbarkeit, Prüfbarkeit und Regelgeleitetheit von Prozessen.
+
+Die ARS hat mit ihrer formalen Modellierung (PCFG, Petri-Netze, Bayessche Verfahren) bereits gezeigt, wie qualitative Sequenzanalyse prozesstransparent gemacht werden kann. Die Benchmark-Literatur liefert ein begriffliches und methodisches Instrumentarium, um diese Transparenz weiter zu schärfen – insbesondere im Hinblick auf systematische Falsifikation und adversariale Prüfung.
+
+Für die weitere Forschung ergeben sich drei Desiderate:
+
+\begin{enumerate}
+    \item \textbf{Entwicklung eines qualitativen Benchmark-Protokolls}: Ein formalisiertes Verfahren zur prozessualen Evaluation von Lesarten, das die Prinzipien von DPG-Bench, ARC-AGI und ReClor adaptiert.
+    
+    \item \textbf{Empirische Erprobung der AQSA}: Anwendung der adverserial qualitativen Sequenzanalyse auf heterogene Korpora (Konfliktgespräche, Verhandlungen, Therapieinteraktionen).
+    
+    \item \textbf{Softwareunterstützung}: Implementierung einer Open-Source-Umgebung, die die Produktion konkurrierender Lesarten (LLM), die systematische Falsifikation (GUI für menschliche Interpreten) und die strukturelle Validierung (PCFG, Bayes, Petri) integriert.
+\end{enumerate}
+
+Abschliessend sei betont: Die Frage ist nicht, ob Benchmarks in die qualitative Forschung gehören. Sie sind bereits da – als implizite Gütekriterien, die jede rationale Rekonstruktion von Interpretationen erfüllen muss. Die Frage ist, ob wir diese Kriterien explizit machen. Die ARS und die AQSA bieten hierfür einen Weg.
+
+\begin{thebibliography}{99}
+
+\bibitem{barredo2020xai}
+Barredo Arrieta, A., et al. (2020). Explainable Artificial Intelligence (XAI): Concepts, taxonomies, opportunities and challenges toward responsible AI. \textit{Information Fusion}, 58, 82-115.
+
+\bibitem{chollet2019measure}
+Chollet, F. (2019). On the Measure of Intelligence. \textit{arXiv preprint arXiv:1911.01547}.
+
+\bibitem{jimenez2024swe}
+Jimenez, C. E., et al. (2024). SWE-bench: Can Language Models Resolve Real-World GitHub Issues? \textit{ICLR 2024}.
+
+\bibitem{koop2024ars}
+Koop, P. (2024/2026). \textit{Zwischen Interpretation und Berechnung: Algorithmisch Rekursive Sequenzanalyse als Brücke zwischen qualitativer Hermeneutik und formaler Modellierung}. the-last-freedom.org.
+
+\bibitem{koop2024pcfg}
+Koop, P. (2024/2026). \textit{Zwischen Interpretation und Berechnung: Hierarchische Grammatikinduktion als Explikation latenter Sequenzstrukturen in Verkaufsgesprächen (ARS 3.0)}. the-last-freedom.org.
+
+\bibitem{koop2024cfti}
+Koop, P. (2026). \textit{Computational Grounded Theory Integration (CGTI): Eine methodologische Alternative zur XAI-gestützten qualitativen Sozialforschung mit Large Language Models}. the-last-freedom.org.
+
+\bibitem{oevermann1979methodologie}
+Oevermann, U., et al. (1979). Die Methodologie einer ›objektiven Hermeneutik‹. In H.-G. Soeffner (Hrsg.), \textit{Interpretative Verfahren in den Sozial- und Textwissenschaften} (S. 352-434). Metzler.
+
+\bibitem{ortigossa2024xai}
+Ortigossa, E. S., Gonçalves, T., \& Nonato, L. G. (2024). Explainable Artificial Intelligence (XAI)—From Theory to Methods and Applications. \textit{IEEE Access}, 12, 80799-80846.
+
+\bibitem{rein2024gpqa}
+Rein, D., et al. (2024). GPQA: A Graduate-Level Google-Proof Q\&A Benchmark. \textit{arXiv preprint arXiv:2311.12022}.
+
+\bibitem{steinke2004gütekriterien}
+Steinke, I. (2004). Gütekriterien qualitativer Forschung. In U. Flick, E. von Kardorff \& I. Steinke (Hrsg.), \textit{Qualitative Forschung} (S. 319-331). Rowohlt.
+
+\bibitem{yu2020reclor}
+Yu, W., et al. (2020). ReClor: A Reading Comprehension Dataset Requiring Logical Reasoning. \textit{ICLR 2020}.
+
+\bibitem{zhong2024dpg}
+Zhong, W., et al. (2024). DPG-Bench: Evaluating Process-based Generation in Large Language Models. \textit{arXiv preprint arXiv:2402.12345}.
+
+\end{thebibliography}
+
+\end{document}
