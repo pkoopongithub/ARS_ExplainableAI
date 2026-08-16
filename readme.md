@@ -170,30 +170,6 @@ All scientific papers are available in `docs/` as **PDF (print-ready)** and **Te
 
 If you have access to larger datasets, are interested in methodological development, or want to apply ARS to new domains (doctor-patient interactions, classroom discourse, online conversations) – I warmly invite you to collaborate.
 
-- **Open Issues**: Check the [issue tracker](https://github.com/pkoopongithub/ARS_ExplainableAI/issues)
-- **Contact**: [post@paul-koop.org](mailto:post@paul-koop.org)
-
----
-
-## 📖 Citation
-
-If you use ARS_ExplainableAI in your research, please cite:
-
-```bibtex
-@misc{koop2024ars,
-  author = {Koop, Paul},
-  title = {Algorithmic Recursive Sequence Analysis (ARS) as a Framework for Explainable AI},
-  year = {2024/2026},
-  url = {https://the-last-freedom.org/algorithmisch-rekursive-sequenzanalyse/ARS_ExplainableAI/},
-  note = {Open access: PDF and TeX available}
-}
-```
-
----
-
-## 📄 License
-
-**Creative Commons BY-NC-SA 4.0** – Free use for non‑commercial research and education with attribution and share‑alike.
 
 ---
 
@@ -201,7 +177,7 @@ If you use ARS_ExplainableAI in your research, please cite:
 
 | Platform | Link |
 |----------|------|
-| 🌐 Project Website | [arsxai.org](https://the-last-freedom.org/algorithmisch-rekursive-sequenzanalyse/ARS_ExplainableAI/) |
+| 🌐 Project Website | [ars-xai.org](https://ars-xai.org) |
 | 🐙 GitHub | [pkoopongithub/ARS_ExplainableAI](https://github.com/pkoopongithub/ARS_ExplainableAI) |
 | 🦊 GitLab | [pkoop/algorithmisch-rekursive-sequenzanalyse](https://gitlab.com/pkoop/algorithmisch-rekursive-sequenzanalyse) |
 | 📄 OverLeaf | [Read-only project](https://www.overleaf.com/read/hvktxktfkzmx#4629e6) |
