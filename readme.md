@@ -12,6 +12,13 @@
 
 ---
 
+**The validity dilemma of AI in qualitative social research:**
+Generative AI massively scales qualitative interpretations – at the expense of empirical validity. The vision of transparent, rule-based coding (long established in R or Python) is getting lost in the hype surrounding LLMs.
+The future of qualitative methodology lies not in ever-larger black boxes, but in explainable, structured systems: neuro-symbolic AI, Bayesian networks, Petri nets, Rule-based systems, Algorithmic Recursive Sequence Analysis and XAI.
+🔗 https://ars-xai.org
+
+---
+
 ## 📋 Overview (English)
 
 **ARS_ExplainableAI** is a methodological and software-based framework for **Algorithmic Recursive Sequence Analysis (ARS)**. It integrates qualitative hermeneutics with formal modeling and contributes to **Explainable Artificial Intelligence (XAI)** in text analysis.
